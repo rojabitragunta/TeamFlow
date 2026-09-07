@@ -16,11 +16,15 @@ const TFNotify = (() => {
     info: "bi-info-circle-fill",
   };
 
+  function escapeHtml(value) {
+    return String(value ?? "").replace(/[&<>"']/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c]));
+  }
+
   function show(message, type = "info", timeout = 3800) {
     const stack = ensureStack();
     const toast = document.createElement("div");
     toast.className = `tf-toast tf-toast-${type}`;
-    toast.innerHTML = `<i class="bi ${ICONS[type] || ICONS.info}"></i><div>${message}</div>`;
+    toast.innerHTML = `<i class="bi ${ICONS[type] || ICONS.info}"></i><div>${escapeHtml(message)}</div>`;
     stack.appendChild(toast);
     setTimeout(() => {
       toast.style.transition = "opacity 0.2s ease";

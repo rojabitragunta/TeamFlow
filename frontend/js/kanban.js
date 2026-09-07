@@ -75,10 +75,10 @@ function cardHtml(t) {
   const assignee = t.assigned_to ? TF_KANBAN_USERS.get(t.assigned_to) : null;
   return `
     <div class="tf-kanban-card" draggable="true" data-task-id="${t.id}">
-      <div class="tf-kanban-card-title"><a href="task-details.html?id=${t.id}" class="text-decoration-none" style="color:inherit;">${t.title}</a></div>
+      <div class="tf-kanban-card-title"><a href="task-details.html?id=${t.id}" class="text-decoration-none" style="color:inherit;">${TFLayout.escapeHtml(t.title)}</a></div>
       <div class="d-flex align-items-center justify-content-between">
         ${TFLayout.badgeForPriority(t.priority)}
-        ${assignee ? `<span class="tf-avatar" title="${assignee.name}">${TFLayout.initials(assignee.name)}</span>` : ""}
+        ${assignee ? `<span class="tf-avatar" title="${TFLayout.escapeHtml(assignee.name)}">${TFLayout.initials(assignee.name)}</span>` : ""}
       </div>
       <div class="tf-kanban-card-meta">
         <span class="tf-kanban-card-due ${t.is_overdue ? "tf-overdue" : ""}">

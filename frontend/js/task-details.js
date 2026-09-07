@@ -43,14 +43,14 @@ function renderTask(content, task, comments, project) {
         <div class="tf-card mb-3">
           <div class="tf-card-body">
             <div class="d-flex justify-content-between align-items-start gap-2 mb-2">
-              <h2 style="font-size:1.2rem; font-weight:700;" class="mb-0">${task.title}</h2>
+              <h2 style="font-size:1.2rem; font-weight:700;" class="mb-0">${TFLayout.escapeHtml(task.title)}</h2>
               ${task.is_overdue ? `<span class="tf-badge tf-badge-overdue">Overdue</span>` : ""}
             </div>
-            <p class="text-muted">${task.description || "No description provided."}</p>
+            <p class="text-muted">${TFLayout.escapeHtml(task.description) || "No description provided."}</p>
             <div class="d-flex flex-wrap gap-2 mt-3">
               ${TFLayout.badgeForStatus(task.status)}
               ${TFLayout.badgeForPriority(task.priority)}
-              ${project ? `<a href="project-details.html?id=${project.id}" class="tf-badge bg-soft-primary text-decoration-none"><i class="bi bi-kanban-fill"></i>${project.name}</a>` : ""}
+              ${project ? `<a href="project-details.html?id=${project.id}" class="tf-badge bg-soft-primary text-decoration-none"><i class="bi bi-kanban-fill"></i>${TFLayout.escapeHtml(project.name)}</a>` : ""}
             </div>
           </div>
         </div>
@@ -77,11 +77,11 @@ function renderTask(content, task, comments, project) {
           <div class="tf-card-body">
             <div class="mb-3">
               <div class="text-muted" style="font-size:0.78rem;">Assignee</div>
-              <div class="fw-semibold" id="assigneeName">${task.assignee ? task.assignee.name : "Unassigned"}</div>
+              <div class="fw-semibold" id="assigneeName">${task.assignee ? TFLayout.escapeHtml(task.assignee.name) : "Unassigned"}</div>
             </div>
             <div class="mb-3">
               <div class="text-muted" style="font-size:0.78rem;">Created by</div>
-              <div class="fw-semibold">${task.creator ? task.creator.name : "—"}</div>
+              <div class="fw-semibold">${task.creator ? TFLayout.escapeHtml(task.creator.name) : "—"}</div>
             </div>
             <div class="mb-3">
               <div class="text-muted" style="font-size:0.78rem;">Due Date</div>
@@ -151,7 +151,7 @@ function renderComments(comments) {
       <span class="tf-avatar">${TFLayout.initials(c.user ? c.user.name : "?")}</span>
       <div class="tf-comment-body">
         <div class="tf-comment-meta">
-          <span class="tf-comment-author">${c.user ? c.user.name : "Unknown"}</span>
+          <span class="tf-comment-author">${c.user ? TFLayout.escapeHtml(c.user.name) : "Unknown"}</span>
           <span class="tf-comment-time">${TFLayout.timeAgo(c.created_at)}</span>
           ${
             currentUser && (currentUser.role === "admin" || currentUser.id === c.user_id)
@@ -159,7 +159,7 @@ function renderComments(comments) {
               : ""
           }
         </div>
-        <div>${c.comment}</div>
+        <div>${TFLayout.escapeHtml(c.comment)}</div>
       </div>
     </div>`
     )

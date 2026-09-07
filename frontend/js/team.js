@@ -80,8 +80,8 @@ function renderTeamTable() {
           <div class="d-flex align-items-center gap-2">
             <span class="tf-avatar">${TFLayout.initials(u.name)}</span>
             <div>
-              <div class="fw-semibold">${u.name}</div>
-              <div class="text-muted" style="font-size:0.74rem;">${u.email}</div>
+              <div class="fw-semibold">${TFLayout.escapeHtml(u.name)}</div>
+              <div class="text-muted" style="font-size:0.74rem;">${TFLayout.escapeHtml(u.email)}</div>
             </div>
           </div>
         </td>
@@ -125,7 +125,7 @@ function renderTeamTable() {
 
 async function changeRole(userId, newRole, selectEl) {
   const user = TF_TEAM_USERS.find((u) => String(u.id) === String(userId));
-  if (!TFNotify.confirmAction(`Change ${user ? user.name : "this user"}'s role to "${ROLE_LABELS[newRole]}"?`)) {
+  if (!TFNotify.confirmAction(`Change ${user ? TFLayout.escapeHtml(user.name) : "this user"}'s role to "${ROLE_LABELS[newRole]}"?`)) {
     if (user) selectEl.value = user.role;
     return;
   }
@@ -173,7 +173,7 @@ function renderWorkloadPanel(keyword) {
           <div class="d-flex align-items-center justify-content-between mb-2">
             <div class="d-flex align-items-center gap-2">
               <span class="tf-avatar">${TFLayout.initials(u.name)}</span>
-              <strong>${u.name}</strong>
+              <strong>${TFLayout.escapeHtml(u.name)}</strong>
               <span class="tf-badge bg-soft-primary">${ROLE_LABELS[u.role] || u.role}</span>
             </div>
             ${w ? `<span class="text-muted" style="font-size:0.8rem;">${w.completion_rate}% completion</span>` : ""}
@@ -210,7 +210,7 @@ async function loadEmployeeTasks(userId) {
       .map(
         (t) => `
       <div class="d-flex align-items-center justify-content-between py-1" style="border-top:1px solid var(--tf-border);">
-        <a href="task-details.html?id=${t.id}" class="text-decoration-none" style="color:var(--tf-text);">${t.title}</a>
+        <a href="task-details.html?id=${t.id}" class="text-decoration-none" style="color:var(--tf-text);">${TFLayout.escapeHtml(t.title)}</a>
         ${TFLayout.badgeForStatus(t.status)}
       </div>`
       )
@@ -241,11 +241,11 @@ function openMemberModal(user = null) {
             <div class="modal-body">
               <div class="mb-3">
                 <label class="form-label">Full Name</label>
-                <input type="text" class="form-control" id="mfName" required value="${isEdit ? user.name : ""}">
+                <input type="text" class="form-control" id="mfName" required value="${isEdit ? TFLayout.escapeHtml(user.name) : ""}">
               </div>
               <div class="mb-3">
                 <label class="form-label">Email</label>
-                <input type="email" class="form-control" id="mfEmail" required value="${isEdit ? user.email : ""}">
+                <input type="email" class="form-control" id="mfEmail" required value="${isEdit ? TFLayout.escapeHtml(user.email) : ""}">
               </div>
               ${
                 !isEdit

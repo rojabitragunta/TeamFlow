@@ -40,10 +40,10 @@ function renderDetails(content, project, tasks) {
         <div class="d-flex flex-wrap justify-content-between align-items-start gap-3">
           <div>
             <div class="d-flex align-items-center gap-2 mb-1">
-              <h2 class="mb-0" style="font-size:1.25rem; font-weight:700;">${project.name}</h2>
+              <h2 class="mb-0" style="font-size:1.25rem; font-weight:700;">${TFLayout.escapeHtml(project.name)}</h2>
               <span class="tf-badge tf-status-${project.status === "active" ? "in_progress" : project.status === "completed" ? "completed" : "todo"}">${STATUS_LABELS[project.status]}</span>
             </div>
-            <p class="text-muted mb-0" style="max-width:560px;">${project.description || "No description provided."}</p>
+            <p class="text-muted mb-0" style="max-width:560px;">${TFLayout.escapeHtml(project.description) || "No description provided."}</p>
           </div>
           ${canManage ? `<button class="btn btn-primary btn-sm" id="newTaskBtn"><i class="bi bi-plus-lg me-1"></i>New Task</button>` : ""}
         </div>
@@ -60,7 +60,7 @@ function renderDetails(content, project, tasks) {
           <div class="col-md-4">
             <div class="text-muted" style="font-size:0.78rem;">Members</div>
             <div class="tf-avatar-group mt-1">
-              ${project.members.slice(0, 6).map((m) => `<span class="tf-avatar" title="${m.user.name}">${TFLayout.initials(m.user.name)}</span>`).join("")}
+              ${project.members.slice(0, 6).map((m) => `<span class="tf-avatar" title="${TFLayout.escapeHtml(m.user.name)}">${TFLayout.initials(m.user.name)}</span>`).join("")}
             </div>
           </div>
         </div>
@@ -112,8 +112,8 @@ function renderTasksTable(tasks) {
       const assignee = t.assigned_to ? userMap.get(t.assigned_to) : null;
       return `
     <tr>
-      <td><a href="task-details.html?id=${t.id}" class="text-decoration-none fw-semibold" style="color:var(--tf-text);">${t.title}</a></td>
-      <td>${assignee ? `<span class="tf-avatar" title="${assignee.name}">${TFLayout.initials(assignee.name)}</span>` : "—"}</td>
+      <td><a href="task-details.html?id=${t.id}" class="text-decoration-none fw-semibold" style="color:var(--tf-text);">${TFLayout.escapeHtml(t.title)}</a></td>
+      <td>${assignee ? `<span class="tf-avatar" title="${TFLayout.escapeHtml(assignee.name)}">${TFLayout.initials(assignee.name)}</span>` : "—"}</td>
       <td>${TFLayout.badgeForPriority(t.priority)}</td>
       <td>${TFLayout.badgeForStatus(t.status)}</td>
       <td>${TFLayout.formatDate(t.due_date)} ${t.is_overdue ? `<span class="tf-badge tf-badge-overdue ms-1">Overdue</span>` : ""}</td>
@@ -135,7 +135,7 @@ function renderMembers(project, canManage) {
       <div class="d-flex align-items-center gap-2">
         <span class="tf-avatar">${TFLayout.initials(m.user.name)}</span>
         <div>
-          <div style="font-size:0.85rem; font-weight:600;">${m.user.name}</div>
+          <div style="font-size:0.85rem; font-weight:600;">${TFLayout.escapeHtml(m.user.name)}</div>
           <div style="font-size:0.72rem; color:var(--tf-text-muted);">${TFLayout.roleLabel(m.user.role)}</div>
         </div>
       </div>
@@ -186,7 +186,7 @@ async function openAddMemberModal(project) {
             <div class="modal-body">
               <label class="form-label">Select user</label>
               <select class="form-select" id="memberSelect" required>
-                ${available.map((u) => `<option value="${u.id}">${u.name} (${TFLayout.roleLabel(u.role)})</option>`).join("")}
+                ${available.map((u) => `<option value="${u.id}">${TFLayout.escapeHtml(u.name)} (${TFLayout.roleLabel(u.role)})</option>`).join("")}
               </select>
               ${!available.length ? `<p class="text-muted mt-2 mb-0" style="font-size:0.82rem;">All users are already members.</p>` : ""}
             </div>
@@ -306,12 +306,12 @@ async function openTaskModal(project) {
       }
       recoBox.innerHTML = `
         <div class="tf-reco-box">
-          <strong>${res.recommended.name}</strong> is recommended (score ${res.recommended.score}).<br>
-          ${res.recommended.reason}
+          <strong>${TFLayout.escapeHtml(res.recommended.name)}</strong> is recommended (score ${res.recommended.score}).<br>
+          ${TFLayout.escapeHtml(res.recommended.reason)}
         </div>`;
       assigneeSearch.setValue(res.recommended.user_id);
     } catch (err) {
-      recoBox.innerHTML = `<div class="text-danger" style="font-size:0.82rem;">${err.message}</div>`;
+      recoBox.innerHTML = `<div class="text-danger" style="font-size:0.82rem;">${TFLayout.escapeHtml(err.message)}</div>`;
     }
   });
 

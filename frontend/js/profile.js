@@ -18,8 +18,8 @@ async function renderProfile(content) {
         <div class="tf-card mb-3">
           <div class="tf-card-body text-center py-4">
             <span class="tf-avatar tf-avatar-lg mx-auto mb-3" style="display:flex;">${TFLayout.initials(user.name)}</span>
-            <h3 style="font-size:1.1rem; font-weight:700;">${user.name}</h3>
-            <p class="text-muted mb-2">${user.email}</p>
+            <h3 style="font-size:1.1rem; font-weight:700;">${TFLayout.escapeHtml(user.name)}</h3>
+            <p class="text-muted mb-2">${TFLayout.escapeHtml(user.email)}</p>
             <div class="d-flex justify-content-center gap-2">
               <span class="tf-badge bg-soft-primary"><i class="bi bi-shield-check"></i>${TFLayout.roleLabel(user.role)}</span>
               ${user.is_active === false ? `<span class="tf-badge bg-soft-danger">Inactive</span>` : `<span class="tf-badge bg-soft-success">Active</span>`}
@@ -34,11 +34,11 @@ async function renderProfile(content) {
             <form id="profileForm">
               <div class="mb-3">
                 <label class="form-label">Full Name</label>
-                <input type="text" class="form-control" id="pfName" required value="${user.name}">
+                <input type="text" class="form-control" id="pfName" required value="${TFLayout.escapeHtml(user.name)}">
               </div>
               <div class="mb-3">
                 <label class="form-label">Email</label>
-                <input type="email" class="form-control" id="pfEmail" required value="${user.email}">
+                <input type="email" class="form-control" id="pfEmail" required value="${TFLayout.escapeHtml(user.email)}">
               </div>
               <button type="submit" class="btn btn-primary btn-sm" id="profileSaveBtn">Save Changes</button>
             </form>

@@ -60,10 +60,10 @@ function renderGrid(projects) {
       <div class="tf-card h-100">
         <div class="tf-card-body d-flex flex-column h-100">
           <div class="d-flex justify-content-between align-items-start mb-2">
-            <a href="project-details.html?id=${p.id}" class="fw-bold text-decoration-none" style="color:var(--tf-text); font-size:1rem;">${p.name}</a>
+            <a href="project-details.html?id=${p.id}" class="fw-bold text-decoration-none" style="color:var(--tf-text); font-size:1rem;">${TFLayout.escapeHtml(p.name)}</a>
             <span class="tf-badge tf-status-${p.status === "active" ? "in_progress" : p.status === "completed" ? "completed" : "todo"}">${STATUS_LABELS[p.status]}</span>
           </div>
-          <p class="text-muted mb-3" style="font-size:0.84rem; min-height: 40px;">${p.description ? p.description.slice(0, 110) : "No description provided."}</p>
+          <p class="text-muted mb-3" style="font-size:0.84rem; min-height: 40px;">${p.description ? TFLayout.escapeHtml(p.description.slice(0, 110)) : "No description provided."}</p>
           <div class="mt-auto d-flex align-items-center justify-content-between">
             <a href="project-details.html?id=${p.id}" class="btn btn-outline-secondary btn-sm">View Details</a>
             ${
@@ -109,11 +109,11 @@ function openProjectModal(project = null) {
             <div class="modal-body">
               <div class="mb-3">
                 <label class="form-label">Project Name</label>
-                <input type="text" class="form-control" id="pfName" required value="${project ? project.name : ""}">
+                <input type="text" class="form-control" id="pfName" required value="${project ? TFLayout.escapeHtml(project.name) : ""}">
               </div>
               <div class="mb-3">
                 <label class="form-label">Description</label>
-                <textarea class="form-control" id="pfDescription" rows="3">${project ? project.description || "" : ""}</textarea>
+                <textarea class="form-control" id="pfDescription" rows="3">${project ? TFLayout.escapeHtml(project.description || "") : ""}</textarea>
               </div>
               <div class="row g-2 mb-3">
                 <div class="col-6">

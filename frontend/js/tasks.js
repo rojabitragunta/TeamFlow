@@ -161,9 +161,9 @@ function renderTable(tasks) {
       const canEditThis = canManage || t.assigned_to === user.id;
       return `
       <tr>
-        <td><a href="task-details.html?id=${t.id}" class="text-decoration-none fw-semibold" style="color:var(--tf-text);">${t.title}</a></td>
-        <td>${project ? project.name : "—"}</td>
-        <td>${assignee ? `<div class="d-flex align-items-center gap-2"><span class="tf-avatar">${TFLayout.initials(assignee.name)}</span><span>${assignee.name}</span></div>` : "<span class='text-muted'>Unassigned</span>"}</td>
+        <td><a href="task-details.html?id=${t.id}" class="text-decoration-none fw-semibold" style="color:var(--tf-text);">${escapeHtml(t.title)}</a></td>
+        <td>${project ? escapeHtml(project.name) : "—"}</td>
+        <td>${assignee ? `<div class="d-flex align-items-center gap-2"><span class="tf-avatar">${TFLayout.initials(assignee.name)}</span><span>${escapeHtml(assignee.name)}</span></div>` : "<span class='text-muted'>Unassigned</span>"}</td>
         <td>${TFLayout.badgeForPriority(t.priority)}</td>
         <td>${TFLayout.badgeForStatus(t.status)}</td>
         <td>${TFLayout.formatDate(t.due_date)} ${t.is_overdue ? `<span class="tf-badge tf-badge-overdue ms-1">Overdue</span>` : ""}</td>
@@ -231,7 +231,7 @@ function openTaskModal(task = null) {
               <div class="mb-3">
                 <label class="form-label">Project</label>
                 <select class="form-select" id="tfProject" required ${fieldsLocked ? "disabled" : ""}>
-                  ${projects.map((p) => `<option value="${p.id}" ${isEdit && task.project_id === p.id ? "selected" : ""}>${p.name}</option>`).join("")}
+                  ${projects.map((p) => `<option value="${p.id}" ${isEdit && task.project_id === p.id ? "selected" : ""}>${escapeHtml(p.name)}</option>`).join("")}
                 </select>
               </div>
               <div class="mb-3">

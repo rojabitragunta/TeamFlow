@@ -7,6 +7,10 @@ const TFLayout = (() => {
     { href: "team.html", icon: "bi-people-fill", label: "Team" },
   ];
 
+  function escapeHtml(value) {
+    return String(value ?? "").replace(/[&<>"']/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c]));
+  }
+
   function initials(name) {
     if (!name) return "?";
     const parts = name.trim().split(/\s+/);
@@ -47,7 +51,7 @@ const TFLayout = (() => {
           <a class="tf-user-chip" href="profile.html" style="color:inherit;">
             <span class="tf-avatar">${initials(user.name)}</span>
             <div>
-              <p class="tf-user-name">${user.name}</p>
+              <p class="tf-user-name">${escapeHtml(user.name)}</p>
               <span class="tf-user-role">${roleLabel(user.role)}</span>
             </div>
           </a>
@@ -183,7 +187,7 @@ const TFLayout = (() => {
       }
       matches.forEach((u) => {
         rows.push(
-          `<button type="button" class="list-group-item list-group-item-action" data-id="${u.id}">${u.name} <span class="text-muted" style="font-size:0.76rem;">(${roleLabel(u.role)})</span></button>`
+          `<button type="button" class="list-group-item list-group-item-action" data-id="${u.id}">${escapeHtml(u.name)} <span class="text-muted" style="font-size:0.76rem;">(${roleLabel(u.role)})</span></button>`
         );
       });
       if (!rows.length) {
@@ -224,6 +228,7 @@ const TFLayout = (() => {
   return {
     render,
     requireAuth,
+    escapeHtml,
     initials,
     roleLabel,
     badgeForStatus,

@@ -174,7 +174,7 @@ function renderRecentTasks(tasks) {
       (t) => `
       <div class="tf-recent-task-row">
         <div>
-          <div class="tf-recent-task-title">${t.title}</div>
+          <div class="tf-recent-task-title">${TFLayout.escapeHtml(t.title)}</div>
           <div class="tf-recent-task-sub">${TFLayout.formatDate(t.due_date)} ${t.is_overdue ? "· <span class='text-danger fw-semibold'>Overdue</span>" : ""}</div>
         </div>
         ${TFLayout.badgeForPriority(t.priority)}
@@ -197,7 +197,7 @@ function renderWorkload(workload) {
       <div class="tf-workload-row">
         <div class="tf-workload-name">
           <span class="tf-avatar">${TFLayout.initials(w.name)}</span>
-          <span>${w.name}</span>
+          <span>${TFLayout.escapeHtml(w.name)}</span>
         </div>
         <div class="tf-workload-bar-wrap">
           <div class="tf-progress"><div class="tf-progress-bar" style="width:${pct}%; background:${color};"></div></div>
