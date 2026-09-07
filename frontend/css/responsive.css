@@ -1,0 +1,68 @@
+@media (max-width: 991.98px) {
+  .tf-sidebar {
+    transform: translateX(-100%);
+    box-shadow: var(--tf-shadow-md);
+  }
+
+  .tf-sidebar.tf-sidebar-open {
+    transform: translateX(0);
+  }
+
+  .tf-main {
+    margin-left: 0;
+  }
+
+  .tf-sidebar-toggle {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+  }
+
+  .tf-sidebar-backdrop {
+    display: none;
+    position: fixed;
+    inset: 0;
+    background: rgba(15, 18, 32, 0.45);
+    z-index: 1025;
+  }
+
+  .tf-sidebar-backdrop.tf-show {
+    display: block;
+  }
+
+  .tf-kanban {
+    grid-template-columns: repeat(2, minmax(240px, 1fr));
+  }
+}
+
+@media (max-width: 767.98px) {
+  .tf-content {
+    padding: 18px 14px 40px;
+  }
+
+  .tf-topbar {
+    padding: 0 14px;
+  }
+
+  .tf-kanban {
+    grid-template-columns: 1fr;
+  }
+
+  .tf-workload-name {
+    width: 100px;
+  }
+
+  .tf-auth-card {
+    padding: 26px 20px;
+  }
+}
+
+@media (max-width: 575.98px) {
+  .tf-topbar-title {
+    font-size: 0.92rem;
+  }
+
+  .tf-stat-value {
+    font-size: 1.4rem;
+  }
+}

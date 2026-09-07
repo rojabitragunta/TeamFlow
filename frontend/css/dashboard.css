@@ -1,0 +1,46 @@
+.tf-chart-card {
+  background: var(--tf-surface);
+  border: 1px solid var(--tf-border);
+  border-radius: var(--tf-radius);
+  box-shadow: var(--tf-shadow);
+  padding: 18px 20px;
+  height: 100%;
+}
+
+.tf-chart-card h3 {
+  font-size: 0.92rem;
+  font-weight: 700;
+  margin-bottom: 14px;
+}
+
+.tf-chart-wrap {
+  position: relative;
+  height: 230px;
+}
+
+.tf-chart-wrap.tf-chart-sm {
+  height: 190px;
+}
+
+.tf-recent-task-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 11px 0;
+  gap: 10px;
+}
+
+.tf-recent-task-row + .tf-recent-task-row {
+  border-top: 1px solid var(--tf-border);
+}
+
+.tf-recent-task-title {
+  font-size: 0.85rem;
+  font-weight: 600;
+  margin-bottom: 3px;
+}
+
+.tf-recent-task-sub {
+  font-size: 0.74rem;
+  color: var(--tf-text-muted);
+}
