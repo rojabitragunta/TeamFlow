@@ -108,3 +108,95 @@ def test_duplicate_email_on_update_rejected(client):
         headers=auth_header(admin_token),
     )
     assert resp.status_code == 409
+
+
+def test_manager_cannot_reset_admins_password(client):
+    admin_token, admin = make_admin(client)
+    pm_token, _ = make_role_user(client, admin_token, "PM", "pm-security@teamflow.com", "project_manager")
+
+    resp = client.put(
+        f"/api/users/{admin['id']}",
+        json={"password": "pwned1234"},
+        headers=auth_header(pm_token),
+    )
+    assert resp.status_code == 403
+
+    # Admin's real password must still work.
+    login = client.post("/api/auth/login", json={"email": admin["email"], "password": "password123"})
+    assert login.status_code == 200
+
+
+def test_manager_cannot_reset_other_managers_password(client):
+    admin_token, _ = make_admin(client)
+    pm1_token, _ = make_role_user(client, admin_token, "PM One", "pm-one@teamflow.com", "project_manager")
+    _, pm2 = make_role_user(client, admin_token, "PM Two", "pm-two@teamflow.com", "project_manager")
+
+    resp = client.put(
+        f"/api/users/{pm2['id']}",
+        json={"password": "pwned1234"},
+        headers=auth_header(pm1_token),
+    )
+    assert resp.status_code == 403
+
+
+def test_manager_can_change_team_members_password_is_still_blocked(client):
+    admin_token, _ = make_admin(client)
+    pm_token, _ = make_role_user(client, admin_token, "PM", "pm-tm@teamflow.com", "project_manager")
+    _, member = make_role_user(client, admin_token, "Member", "member-tm@teamflow.com", "team_member")
+
+    resp = client.put(
+        f"/api/users/{member['id']}",
+        json={"password": "pwned1234"},
+        headers=auth_header(pm_token),
+    )
+    assert resp.status_code == 403
+
+
+def test_manager_cannot_edit_admin_profile(client):
+    admin_token, admin = make_admin(client)
+    pm_token, _ = make_role_user(client, admin_token, "PM", "pm-editadmin@teamflow.com", "project_manager")
+
+    resp = client.put(
+        f"/api/users/{admin['id']}",
+        json={"name": "Hacked Admin"},
+        headers=auth_header(pm_token),
+    )
+    assert resp.status_code == 403
+
+
+def test_manager_can_still_edit_team_member_profile(client):
+    admin_token, _ = make_admin(client)
+    pm_token, _ = make_role_user(client, admin_token, "PM", "pm-editmember@teamflow.com", "project_manager")
+    _, member = make_role_user(client, admin_token, "Member", "member-edit@teamflow.com", "team_member")
+
+    resp = client.put(
+        f"/api/users/{member['id']}",
+        json={"name": "Renamed By PM"},
+        headers=auth_header(pm_token),
+    )
+    assert resp.status_code == 200
+    assert resp.json()["name"] == "Renamed By PM"
+
+
+def test_weak_password_rejected_on_register(client):
+    resp = client.post(
+        "/api/auth/register",
+        json={
+            "name": "Weak Pw",
+            "email": "weakpw@teamflow.com",
+            "password": "aaaaaaaa",
+            "confirm_password": "aaaaaaaa",
+        },
+    )
+    assert resp.status_code == 422
+
+    resp2 = client.post(
+        "/api/auth/register",
+        json={
+            "name": "Weak Pw",
+            "email": "weakpw2@teamflow.com",
+            "password": "short1",
+            "confirm_password": "short1",
+        },
+    )
+    assert resp2.status_code == 422

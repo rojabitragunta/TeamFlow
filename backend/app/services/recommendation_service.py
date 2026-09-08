@@ -1,8 +1,7 @@
 from sqlalchemy.orm import Session
 
 from app.models.project_member import ProjectMember
-from app.models.user import User
-from app.services.workload_service import compute_user_workload
+from app.services.workload_service import compute_team_workload
 
 
 def recommend_assignee(db: Session, project_id: int) -> dict:
@@ -13,12 +12,11 @@ def recommend_assignee(db: Session, project_id: int) -> dict:
     produce a higher (better) score. Purely arithmetic, no external AI call.
     """
     member_rows = db.query(ProjectMember).filter(ProjectMember.project_id == project_id).all()
+    members = [row.user for row in member_rows]
+    workloads = compute_team_workload(db, members)
     candidates = []
 
-    for row in member_rows:
-        user: User = row.user
-        w = compute_user_workload(db, user)
-
+    for w in workloads:
         score = 100.0
         score -= w["active_tasks"] * 12
         score -= w["overdue_tasks"] * 20
@@ -36,8 +34,8 @@ def recommend_assignee(db: Session, project_id: int) -> dict:
 
         candidates.append(
             {
-                "user_id": user.id,
-                "name": user.name,
+                "user_id": w["user_id"],
+                "name": w["name"],
                 "score": score,
                 "reason": ", ".join(reasons),
             }

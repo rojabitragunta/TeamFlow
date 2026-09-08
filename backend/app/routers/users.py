@@ -66,12 +66,14 @@ def update_user(
     is_admin = current_user.role == UserRole.ADMIN
     is_manager = current_user.role == UserRole.PROJECT_MANAGER
 
-    if not (is_self or is_admin or is_manager):
-        raise HTTPException(status_code=403, detail="Not allowed to update this user")
-
     user = db.query(User).filter(User.id == user_id).first()
     if not user:
         raise HTTPException(status_code=404, detail="User not found")
+
+    # A manager may edit team members, but never other managers or admins —
+    # only an Admin (or the account owner) can touch a "higher or equal" account.
+    if not (is_self or is_admin or (is_manager and user.role == UserRole.TEAM_MEMBER)):
+        raise HTTPException(status_code=403, detail="Not allowed to update this user")
 
     data = payload.model_dump(exclude_unset=True)
     current_password = data.pop("current_password", None)
@@ -81,8 +83,11 @@ def update_user(
             raise HTTPException(status_code=409, detail="An account with this email already exists")
 
     if "password" in data and data["password"]:
-        # Anyone changing their OWN password must prove they know the current one.
-        # An admin resetting someone else's password is exempt from this check.
+        # Only the account owner (with proof of current password) or an Admin
+        # (unconditional reset) may change a password — never a manager acting
+        # on someone else's account.
+        if not (is_self or is_admin):
+            raise HTTPException(status_code=403, detail="Not allowed to change this user's password")
         if is_self and not verify_password(current_password or "", user.password_hash):
             raise HTTPException(status_code=400, detail="Current password is incorrect")
         user.password_hash = hash_password(data.pop("password"))

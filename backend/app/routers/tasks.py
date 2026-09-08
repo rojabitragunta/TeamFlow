@@ -5,6 +5,7 @@ from sqlalchemy.orm import Session
 
 from app.database.database import get_db
 from app.dependencies.auth import get_current_user, require_manager
+from app.models.project import Project
 from app.models.project_member import ProjectMember
 from app.models.task import Task, TaskPriority, TaskStatus
 from app.models.user import User, UserRole
@@ -65,6 +66,11 @@ def list_tasks(
 def create_task(
     payload: TaskCreate, db: Session = Depends(get_db), current_user: User = Depends(require_manager)
 ):
+    if not db.query(Project).filter(Project.id == payload.project_id).first():
+        raise HTTPException(status_code=400, detail="Project not found")
+    if payload.assigned_to is not None and not db.query(User).filter(User.id == payload.assigned_to).first():
+        raise HTTPException(status_code=400, detail="Assignee not found")
+
     task = Task(**payload.model_dump(), created_by=current_user.id)
     db.add(task)
     db.commit()
@@ -103,6 +109,11 @@ def update_task(
             raise HTTPException(
                 status_code=403, detail="Team members may only update task status"
             )
+
+    if "project_id" in data and not db.query(Project).filter(Project.id == data["project_id"]).first():
+        raise HTTPException(status_code=400, detail="Project not found")
+    if data.get("assigned_to") is not None and not db.query(User).filter(User.id == data["assigned_to"]).first():
+        raise HTTPException(status_code=400, detail="Assignee not found")
 
     for field, value in data.items():
         setattr(task, field, value)
