@@ -2,6 +2,7 @@ let TF_TASKS = [];
 let TF_PROJECTS_MAP = new Map();
 let TF_USERS_MAP = new Map();
 let TF_ALL_USERS = [];
+let TF_URL_SELECT_FILTERS_APPLIED = false;
 
 document.addEventListener("DOMContentLoaded", async () => {
   if (!TFLayout.requireAuth()) return;
@@ -60,6 +61,7 @@ document.addEventListener("DOMContentLoaded", async () => {
         </div>
       </div>
     </div>
+    <div id="filterSummary" class="mb-2"></div>
     <div class="tf-card">
       <div class="tf-table-wrap">
         <table class="tf-table">
@@ -72,6 +74,8 @@ document.addEventListener("DOMContentLoaded", async () => {
     </div>
   `;
 
+  applyFiltersFromUrl();
+
   ["fKeyword", "fProject", "fAssignee", "fStatus", "fPriority", "fOverdue"].forEach((id) => {
     document.getElementById(id).addEventListener("input", applyFilters);
     document.getElementById(id).addEventListener("change", applyFilters);
@@ -83,6 +87,61 @@ document.addEventListener("DOMContentLoaded", async () => {
 
   await loadData();
 });
+
+function applyFiltersFromUrl() {
+  // fProject/fAssignee are populated later in loadData() (their <option>s don't
+  // exist yet), so only the statically-available fields are set here — the
+  // select-based ones are applied from loadData() once their options exist.
+  const params = new URLSearchParams(window.location.search);
+  if (params.has("keyword")) document.getElementById("fKeyword").value = params.get("keyword");
+  if (params.has("status")) document.getElementById("fStatus").value = params.get("status");
+  if (params.has("priority")) document.getElementById("fPriority").value = params.get("priority");
+  if (params.get("overdue") === "true") document.getElementById("fOverdue").checked = true;
+}
+
+function clearFilters() {
+  document.getElementById("fKeyword").value = "";
+  document.getElementById("fProject").value = "";
+  document.getElementById("fAssignee").value = "";
+  document.getElementById("fStatus").value = "";
+  document.getElementById("fPriority").value = "";
+  document.getElementById("fOverdue").checked = false;
+  window.history.replaceState({}, "", window.location.pathname);
+  applyFilters();
+}
+
+const STATUS_HEADING_LABELS = { todo: "To Do", in_progress: "In Progress", review: "Review", completed: "Completed" };
+const PRIORITY_HEADING_LABELS = { low: "Low Priority", medium: "Medium Priority", high: "High Priority", critical: "Critical" };
+
+function renderFilterSummary(count) {
+  const box = document.getElementById("filterSummary");
+  const status = document.getElementById("fStatus").value;
+  const priority = document.getElementById("fPriority").value;
+  const overdueOnly = document.getElementById("fOverdue").checked;
+  const keyword = document.getElementById("fKeyword").value;
+  const projectId = document.getElementById("fProject").value;
+  const assigneeId = document.getElementById("fAssignee").value;
+
+  const anyFilterActive = !!(status || priority || overdueOnly || keyword || projectId || assigneeId);
+
+  let heading = "All Tasks";
+  if (overdueOnly) heading = "Overdue Tasks";
+  else if (priority) heading = `${PRIORITY_HEADING_LABELS[priority] || priority} Tasks`;
+  else if (status) heading = `${STATUS_HEADING_LABELS[status] || status} Tasks`;
+  else if (anyFilterActive) heading = "Filtered Tasks";
+
+  if (!anyFilterActive) {
+    box.innerHTML = "";
+    return;
+  }
+
+  box.innerHTML = `
+    <div class="d-flex align-items-center justify-content-between flex-wrap gap-2">
+      <h2 style="font-size:1.05rem; font-weight:700; margin:0;">${heading} (${count})</h2>
+      <button type="button" class="btn btn-outline-secondary btn-sm" id="clearFiltersBtn"><i class="bi bi-x-lg me-1"></i>Show All</button>
+    </div>`;
+  document.getElementById("clearFiltersBtn").addEventListener("click", clearFilters);
+}
 
 async function loadData() {
   try {
@@ -118,6 +177,13 @@ async function loadData() {
     });
     assigneeSelect.value = currentAssigneeVal;
 
+    if (!TF_URL_SELECT_FILTERS_APPLIED) {
+      TF_URL_SELECT_FILTERS_APPLIED = true;
+      const params = new URLSearchParams(window.location.search);
+      if (params.has("project")) projectSelect.value = params.get("project");
+      if (params.has("assigned_to")) assigneeSelect.value = params.get("assigned_to");
+    }
+
     applyFilters();
   } catch (err) {
     document.getElementById("tasksBody").innerHTML = `<tr><td colspan="7">${TFLayout.emptyState("bi-exclamation-circle", "Could not load tasks", err.message)}</td></tr>`;
@@ -141,6 +207,7 @@ function applyFilters() {
     if (overdueOnly && !t.is_overdue) return false;
     return true;
   });
+  renderFilterSummary(filtered.length);
   renderTable(filtered);
 }
 

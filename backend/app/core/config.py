@@ -26,6 +26,10 @@ class Settings(BaseSettings):
         return [origin.strip() for origin in self.cors_origins.split(",") if origin.strip()]
 
     @property
+    def is_production(self) -> bool:
+        return self.environment.lower() not in ("development", "dev", "test", "testing")
+
+    @property
     def database_url(self) -> URL:
         return URL.create(
             drivername="mysql+pymysql",
@@ -39,9 +43,7 @@ class Settings(BaseSettings):
 
 settings = Settings()
 
-if settings.environment.lower() not in ("development", "dev", "test", "testing") and (
-    settings.jwt_secret == INSECURE_DEFAULT_JWT_SECRET
-):
+if settings.is_production and settings.jwt_secret == INSECURE_DEFAULT_JWT_SECRET:
     raise RuntimeError(
         "JWT_SECRET is unset or using the insecure default. Set a strong, random JWT_SECRET "
         "environment variable before running outside of development."

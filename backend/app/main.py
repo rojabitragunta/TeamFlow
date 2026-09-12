@@ -16,6 +16,13 @@ app = FastAPI(
     title="TeamFlow API",
     description="Role-based team task & workload management platform.",
     version="1.0.0",
+    # Interactive API docs (Swagger UI, ReDoc) and the raw OpenAPI schema are
+    # public by default — fine for local development, but they expose the
+    # full endpoint/schema list to anyone in production. Disabled when
+    # ENVIRONMENT is set to a non-dev value.
+    docs_url=None if settings.is_production else "/docs",
+    redoc_url=None if settings.is_production else "/redoc",
+    openapi_url=None if settings.is_production else "/openapi.json",
 )
 
 app.state.limiter = limiter

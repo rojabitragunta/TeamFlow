@@ -32,13 +32,13 @@ function chartGridColor() {
 
 function renderDashboard(content, s) {
   const cards = [
-    { label: "Total Projects", value: s.total_projects, icon: "bi-kanban-fill", cls: "primary" },
-    { label: "Active Projects", value: s.active_projects, icon: "bi-play-circle-fill", cls: "info" },
-    { label: "Total Tasks", value: s.total_tasks, icon: "bi-list-check", cls: "primary" },
-    { label: "Completed Tasks", value: s.completed_tasks, icon: "bi-check-circle-fill", cls: "success" },
-    { label: "In Progress", value: s.in_progress_tasks, icon: "bi-hourglass-split", cls: "info" },
-    { label: "Overdue Tasks", value: s.overdue_tasks, icon: "bi-alarm-fill", cls: "danger" },
-    { label: "Critical Tasks", value: s.critical_tasks, icon: "bi-exclamation-triangle-fill", cls: "warning" },
+    { label: "Total Projects", value: s.total_projects, icon: "bi-kanban-fill", cls: "primary", href: "projects.html" },
+    { label: "Active Projects", value: s.active_projects, icon: "bi-play-circle-fill", cls: "info", href: "projects.html?status=active" },
+    { label: "Total Tasks", value: s.total_tasks, icon: "bi-list-check", cls: "primary", href: "tasks.html" },
+    { label: "Completed Tasks", value: s.completed_tasks, icon: "bi-check-circle-fill", cls: "success", href: "tasks.html?status=completed" },
+    { label: "In Progress", value: s.in_progress_tasks, icon: "bi-hourglass-split", cls: "info", href: "tasks.html?status=in_progress" },
+    { label: "Overdue Tasks", value: s.overdue_tasks, icon: "bi-alarm-fill", cls: "danger", href: "tasks.html?overdue=true" },
+    { label: "Critical Tasks", value: s.critical_tasks, icon: "bi-exclamation-triangle-fill", cls: "warning", href: "tasks.html?priority=critical" },
   ];
 
   content.innerHTML = `
@@ -47,7 +47,7 @@ function renderDashboard(content, s) {
         .map(
           (c) => `
         <div class="col-6 col-md-4 col-xl-3">
-          <div class="tf-stat-card">
+          <a class="tf-stat-card tf-stat-card-clickable" href="${c.href}" role="button" aria-label="View ${TFLayout.escapeHtml(c.label)}">
             <div class="tf-stat-top">
               <div>
                 <div class="tf-stat-value">${c.value}</div>
@@ -55,7 +55,7 @@ function renderDashboard(content, s) {
               </div>
               <div class="tf-stat-icon bg-soft-${c.cls}"><i class="bi ${c.icon}"></i></div>
             </div>
-          </div>
+          </a>
         </div>`
         )
         .join("")}

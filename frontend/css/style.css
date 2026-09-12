@@ -362,6 +362,22 @@ a {
   padding: 18px 20px;
   box-shadow: var(--tf-shadow);
   height: 100%;
+  display: block;
+  text-decoration: none;
+  color: inherit;
+}
+
+.tf-stat-card-clickable {
+  cursor: pointer;
+  transition: transform 0.15s ease, box-shadow 0.15s ease, border-color 0.15s ease;
+}
+
+.tf-stat-card-clickable:hover,
+.tf-stat-card-clickable:focus-visible {
+  transform: translateY(-2px);
+  box-shadow: var(--tf-shadow-md);
+  border-color: var(--tf-primary, var(--tf-border));
+  color: inherit;
 }
 
 .tf-stat-top {

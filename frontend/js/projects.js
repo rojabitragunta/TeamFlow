@@ -1,4 +1,5 @@
 let TF_ALL_PROJECTS = [];
+let TF_STATUS_FILTER = new URLSearchParams(window.location.search).get("status") || "";
 
 document.addEventListener("DOMContentLoaded", async () => {
   if (!TFLayout.requireAuth()) return;
@@ -7,6 +8,7 @@ document.addEventListener("DOMContentLoaded", async () => {
   const canManage = user.role === "admin" || user.role === "project_manager";
 
   content.innerHTML = `
+    <div id="filterSummary" class="mb-2"></div>
     <div class="d-flex flex-wrap gap-2 align-items-center justify-content-between mb-3">
       <div class="tf-search-input" style="max-width:320px;">
         <i class="bi bi-search"></i>
@@ -18,7 +20,7 @@ document.addEventListener("DOMContentLoaded", async () => {
   `;
 
   document.getElementById("projectSearch").addEventListener("input", (e) => {
-    renderGrid(filterProjects(e.target.value));
+    renderFiltered(e.target.value);
   });
 
   if (canManage) {
@@ -30,13 +32,46 @@ document.addEventListener("DOMContentLoaded", async () => {
 
 function filterProjects(keyword) {
   const kw = (keyword || "").toLowerCase();
-  return TF_ALL_PROJECTS.filter((p) => p.name.toLowerCase().includes(kw));
+  return TF_ALL_PROJECTS.filter((p) => {
+    if (TF_STATUS_FILTER && p.status !== TF_STATUS_FILTER) return false;
+    if (kw && !p.name.toLowerCase().includes(kw)) return false;
+    return true;
+  });
+}
+
+function renderFiltered(keyword) {
+  const filtered = filterProjects(keyword);
+  renderFilterSummary(filtered.length);
+  renderGrid(filtered);
+}
+
+function clearStatusFilter() {
+  TF_STATUS_FILTER = "";
+  window.history.replaceState({}, "", window.location.pathname);
+  renderFiltered(document.getElementById("projectSearch").value);
+}
+
+const STATUS_HEADING_LABELS = { planned: "Planned", active: "Active", on_hold: "On Hold", completed: "Completed" };
+
+function renderFilterSummary(count) {
+  const box = document.getElementById("filterSummary");
+  if (!TF_STATUS_FILTER) {
+    box.innerHTML = "";
+    return;
+  }
+  const label = STATUS_HEADING_LABELS[TF_STATUS_FILTER] || TF_STATUS_FILTER;
+  box.innerHTML = `
+    <div class="d-flex align-items-center justify-content-between flex-wrap gap-2">
+      <h2 style="font-size:1.05rem; font-weight:700; margin:0;">${TFLayout.escapeHtml(label)} Projects (${count})</h2>
+      <button type="button" class="btn btn-outline-secondary btn-sm" id="clearStatusFilterBtn"><i class="bi bi-x-lg me-1"></i>Show All</button>
+    </div>`;
+  document.getElementById("clearStatusFilterBtn").addEventListener("click", clearStatusFilter);
 }
 
 async function loadProjects() {
   try {
     TF_ALL_PROJECTS = await TeamFlowAPI.get("/projects");
-    renderGrid(TF_ALL_PROJECTS);
+    renderFiltered(document.getElementById("projectSearch").value);
   } catch (err) {
     document.getElementById("projectsGrid").innerHTML = TFLayout.emptyState("bi-exclamation-circle", "Could not load projects", err.message);
   }

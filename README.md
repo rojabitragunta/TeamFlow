@@ -235,7 +235,7 @@ cd frontend
 python -m http.server 5500
 ```
 
-Then open http://localhost:5500. It talks to the backend at `http://localhost:8000/api` (configured in `frontend/js/api.js`).
+Then open http://localhost:5500. It talks to the backend at `http://localhost:8000/api` by default when run locally — this is auto-detected in `frontend/js/config.js`, which also documents how to point the frontend at a production backend URL.
 
 ---
 
