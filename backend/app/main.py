@@ -1,3 +1,5 @@
+import logging
+
 from fastapi import FastAPI, Request
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import JSONResponse
@@ -47,15 +49,20 @@ app.add_middleware(
 
 @app.on_event("startup")
 def on_startup():
+    logger = logging.getLogger("uvicorn.error")
     try:
         Base.metadata.create_all(bind=engine)
         run_safe_migrations(engine)
+        logger.info("Database connection established and schema is up to date.")
     except Exception as exc:  # pragma: no cover - only hit when DB is unreachable
-        import logging
-
-        logging.getLogger("uvicorn.error").warning(
-            "Could not connect to the database on startup: %s", exc
-        )
+        # In production, a service that "starts" without a working database is
+        # worse than one that fails to deploy — every request would 500 with
+        # a confusing error instead of the deploy being clearly marked failed.
+        # Locally, keep the old convenient behavior so the frontend can still
+        # be worked on while MySQL is offline.
+        logger.error("Database connection failed during startup: %s", exc)
+        if settings.is_production:
+            raise
 
 
 app.include_router(auth.router)

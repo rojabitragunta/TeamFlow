@@ -183,17 +183,18 @@ pip install -r requirements.txt
 
 ## Environment Variables (`backend/.env`)
 
-```
-DB_HOST=localhost
-DB_PORT=3306
-DB_NAME=teamflow
-DB_USER=root
-DB_PASSWORD=your-mysql-password
+Copy `backend/.env.example` to `backend/.env` and fill in real values — every variable is documented there with what it does. The full list:
 
-JWT_SECRET=change-this-to-a-long-random-secret-string
-JWT_ALGORITHM=HS256
-JWT_EXPIRE_MINUTES=1440
-```
+| Variable | Local dev value | What it's for |
+|---|---|---|
+| `DB_HOST`, `DB_PORT`, `DB_NAME`, `DB_USER`, `DB_PASSWORD` | your local MySQL | Database connection |
+| `DB_USE_SSL` | `false` | Set `true` for TiDB Cloud or any managed host that requires TLS |
+| `JWT_SECRET` | any string | **Must** be a long, random, unique value in production — the app refuses to start with the insecure default outside dev/test |
+| `JWT_ALGORITHM` | `HS256` | JWT signing algorithm |
+| `JWT_EXPIRE_MINUTES` | `1440` | How long a login session lasts |
+| `ENVIRONMENT` | `development` | Set to `production` on a real deploy — this enables the JWT-secret safety check, disables `/docs`/`/redoc`/`/openapi.json`, and makes a failed database connection crash startup loudly instead of silently limping along |
+| `CORS_ORIGINS` | `http://localhost:5500,http://127.0.0.1:5500` | Comma-separated list of frontend origins allowed to call the API |
+| `ADMIN_SETUP_TOKEN` | any string, or leave unset | One-time token required in the registration form to create the first Admin account; leave unset to disable admin self-registration entirely |
 
 Never commit `.env` — it's already in `.gitignore`.
 
@@ -248,6 +249,65 @@ pytest -v
 ```
 
 Tests run against an in-memory SQLite database (via a FastAPI dependency override), so they don't require MySQL and run fast in CI. Coverage includes registration, login (success/failure), auth, user/project/task/comment CRUD, role-based authorization, overdue detection, workload calculation, and smart assignee recommendation.
+
+---
+
+## Deploying to Render with TiDB Cloud
+
+This walks through the exact setup this project is configured for: a Render Web Service running the FastAPI backend, connected to a TiDB Cloud (MySQL-compatible, TLS-required) database.
+
+### 1. Set up TiDB Cloud
+
+1. Create a free TiDB Cloud Serverless cluster at [tidbcloud.com](https://tidbcloud.com).
+2. From the cluster's **Connect** panel, copy the host, port (usually `4000`), user, and password. TiDB Cloud requires TLS — this project already handles that correctly (see `backend/app/database/database.py`), you don't need to download or configure a certificate file yourself.
+3. Create the database: connect with any MySQL client and run `CREATE DATABASE teamflow CHARACTER SET utf8mb4;` (or use whatever name you'll put in `DB_NAME`).
+
+### 2. Create the Render Web Service
+
+1. Push this repo to GitHub (already done if you're reading this from the repo).
+2. On [render.com](https://render.com), create a new **Web Service** from your GitHub repo.
+3. **Root Directory**: `backend`
+4. **Build Command**: `pip install -r requirements.txt`
+5. **Start Command**: `uvicorn app.main:app --host 0.0.0.0 --port $PORT`
+
+### 3. Pin the Python version (required)
+
+Render defaults to a very recent Python version that may not yet have prebuilt wheels for this project's pinned dependencies (this caused a real build failure — `pydantic-core` trying to compile from source and failing on Render's read-only filesystem). This repo includes `backend/.python-version` pinning Python 3.12, which Render reads automatically **when the Root Directory is `backend`**.
+
+As a more reliable backup (env vars take priority over the file, regardless of Root Directory path resolution), also set this in Render's **Environment** tab:
+```
+PYTHON_VERSION=3.12.7
+```
+
+### 4. Set environment variables in Render
+
+In the Render service's **Environment** tab, add:
+```
+ENVIRONMENT=production
+DB_HOST=<your TiDB Cloud host>
+DB_PORT=4000
+DB_NAME=teamflow
+DB_USER=<your TiDB Cloud user>
+DB_PASSWORD=<your TiDB Cloud password>
+DB_USE_SSL=true
+JWT_SECRET=<generate a long random value — never reuse the local dev one>
+CORS_ORIGINS=<your deployed frontend's URL, e.g. https://your-frontend.onrender.com>
+ADMIN_SETUP_TOKEN=<a random one-time token, to create your first admin — remove it after>
+```
+
+### 5. Deploy, then verify
+
+1. Trigger the deploy. Watch the build logs — it should install cleanly on Python 3.12 with no Cargo/Rust compilation step.
+2. Once live, Render gives you a URL like `https://teamflow-xxxx.onrender.com`. Test it: `https://teamflow-xxxx.onrender.com/api/health` should return `{"status":"ok"}`.
+3. **You still need to enter this URL into the frontend** — open `frontend/js/config.js` and set `PRODUCTION_API_BASE_URL` to `https://teamflow-xxxx.onrender.com/api` (this file intentionally does not guess or invent this URL for you, since it doesn't exist until you deploy).
+4. Register your first Admin using the `ADMIN_SETUP_TOKEN` you set above, then consider removing that env var from Render so no one else can self-register as Admin.
+5. Confirm `/docs` now returns `404` on the production URL (it's intentionally disabled outside dev) — this is expected, not a bug.
+
+### Troubleshooting
+
+- **Build fails on `pydantic-core` / Cargo / Rust**: the Python version pin above didn't take effect. Double-check `PYTHON_VERSION=3.12.7` is set in Render's Environment tab and redeploy.
+- **App "deploys" but every request 500s**: check the Render logs for `Database connection failed during startup` — in production this now crashes the app on purpose (so Render marks the deploy as failed, instead of quietly running with no database). Fix the `DB_*` variables and redeploy.
+- **CORS errors in the browser console**: `CORS_ORIGINS` on Render must exactly match your frontend's actual URL (scheme + host, no trailing slash).
 
 ---
 

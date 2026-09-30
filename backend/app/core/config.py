@@ -10,6 +10,11 @@ class Settings(BaseSettings):
     db_name: str = "teamflow"
     db_user: str = "root"
     db_password: str = "changeme"
+    # TLS is required by managed MySQL-compatible hosts like TiDB Cloud, but a
+    # local MySQL install for local dev typically doesn't have it configured.
+    # This is independent of ENVIRONMENT because local dev can also point at
+    # a cloud database (e.g. testing against TiDB Cloud from your laptop).
+    db_use_ssl: bool = False
 
     jwt_secret: str = INSECURE_DEFAULT_JWT_SECRET
     jwt_algorithm: str = "HS256"
